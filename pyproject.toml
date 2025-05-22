@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyblast4_archive"
+version = "0.0.1"
+authors = [
+    { name = "Andrew Tapia", email = "andrew.tapia@uky.edu" }
+]
+description =  "Rudimentary BLAST archive reading in Python"
+# readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+license = "MIT"
+
+[[tool.setuptools.ext-modules]]
+name = "pyblast4_archive.pyblast4_archive"
+sources = ["src/pyblast4_archive.cpp"]
+include-dirs = ["/usr/local/include/ncbi-tools++"]
+libraries = [
+    "boost_python312",
+    "python3.12",
+    "mmdb",
+    "pub",
+    "biblio",
+    "xncbi",
+    "general",
+    "macro",
+    "pub",
+    "pubmed",
+    "xncbi",
+    "seq",
+    "xser",
+    "medline",
+    "seqcode",
+    "sequtil",
+    "xutil",
+    "xncbi",
+    "xnetblast",
+    "scoremat",
+    "seqset"
+]
+language = "c++" 
+
+# [project.urls]
+# "Homepage" = "https://github.com/actapia/simple_blast"
+# "Bug Tracker" = "https://github.com/actapia/simple_blast"
+
+# [tool.setuptools.packages.find]
+# where = ["src"]
+# include = ["simple_blast"]
