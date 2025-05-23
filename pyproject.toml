@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyblast4_archive"
-version = "0.0.1"
+version = "0.0.2"
 authors = [
     { name = "Andrew Tapia", email = "andrew.tapia@uky.edu" }
 ]
@@ -12,12 +12,12 @@ description =  "Rudimentary BLAST archive reading in Python"
 # readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
-license = "MIT"
+license = "BSD-3-Clause"
 
 [[tool.setuptools.ext-modules]]
 name = "pyblast4_archive.pyblast4_archive"
 sources = ["src/pyblast4_archive.cpp"]
-include-dirs = ["/usr/local/include/ncbi-tools++"]
+include-dirs = ["/usr/local/include/ncbi-tools++", "./include"]
 libraries = [
     "boost_python312",
     "python3.12",
