@@ -30,9 +30,18 @@ def _Blast4Archive_from_file(cls, f, form):
         ObjectIStream.from_python_file_like(form, f),
     )
 
+def _Blast4Archive_from_bytes(cls, b, form):
+    form = as_enum(SerialDataFormat, form)
+    return _Blast4Archive_from_istream(
+        cls,
+        ObjectIStream.from_bytes(form, b),
+    )
+
+
 
 Blast4Archive.from_path = classmethod(_Blast4Archive_from_path)
 Blast4Archive.from_file = classmethod(_Blast4Archive_from_file)
+Blast4Archive.from_bytes = classmethod(_Blast4Archive_from_bytes)
 
 __all__ = [
     "Blast4Archive",

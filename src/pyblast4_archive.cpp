@@ -33,7 +33,9 @@ static ncbi::CObjectIStream *(*Open2)(
 
 //static ncbi::CObjectIStream *(*Open3
 
-static ncbi::CObjectIStream *(*CreateFromBuffer3)(ncbi::ESerialDataFormat, const char* buffer, size_t size) = &ncbi::CObjectIStream::CreateFromBuffer;
+static ncbi::CObjectIStream *(*CreateFromBuffer3)(
+    ncbi::ESerialDataFormat, const char *buffer,
+    size_t size) = &ncbi::CObjectIStream::CreateFromBuffer;
 
 template <typename T>
 class WrappedSerialObject: virtual public T {
@@ -60,6 +62,16 @@ public:
     std::shared_ptr<boost_adaptbx::python::streambuf> sbp(new boost_adaptbx::python::streambuf(file_like, 1024));
     SmartIStream* is = new SmartIStream(sbp);
     return ncbi::CObjectIStream::Open(format, *is, ENcbiOwnership::eTakeOwnership);
+  }
+
+  static CObjectIStream* from_bytes(ncbi::ESerialDataFormat format, PyObject* obj) {
+    char* buffer;
+    Py_ssize_t length;
+    int res = PyBytes_AsStringAndSize(obj, &buffer, &length);
+    if (res < -1) {
+      return NULL;    
+    }
+    return ncbi::CObjectIStream::CreateFromBuffer(format, buffer, length);
   }
 };
 
@@ -116,8 +128,9 @@ BOOST_PYTHON_MODULE(pyblast4_archive) {
     .def("open", Open2, return_value_policy<manage_new_object>()).staticmethod("open")
     .def("_from_buffer", CreateFromBuffer3, return_value_policy<manage_new_object>()).staticmethod("_from_buffer");
 
-  class_<WrappedObjectIStream, boost::noncopyable, bases<ncbi::CObjectIStream>>("ObjectIStream", no_init).
-    def("from_python_file_like", &WrappedObjectIStream::from_python_file_like, return_value_policy<manage_new_object>()).staticmethod("from_python_file_like");
+  class_<WrappedObjectIStream, boost::noncopyable, bases<ncbi::CObjectIStream>>("ObjectIStream", no_init)
+    .def("from_python_file_like", &WrappedObjectIStream::from_python_file_like, return_value_policy<manage_new_object>()).staticmethod("from_python_file_like")
+    .def("from_bytes", &WrappedObjectIStream::from_bytes, return_internal_reference<2, return_value_policy<manage_new_object>>()).staticmethod("from_bytes");
 
   class_<ncbi::CSerialObject, boost::noncopyable>("SerialObject", no_init);
 
