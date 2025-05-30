@@ -1,6 +1,7 @@
 from .pyblast4_archive import (
     Blast4Archive,
-    decode_internal_ids,
+    decode_query_ids,
+    decode_subject_ids,
     ObjectIStream,
     SerialDataFormat
 )
@@ -33,4 +34,9 @@ def _Blast4Archive_from_file(cls, f, form):
 Blast4Archive.from_path = classmethod(_Blast4Archive_from_path)
 Blast4Archive.from_file = classmethod(_Blast4Archive_from_file)
 
-__all__ = ["Blast4Archive", "decode_internal_ids", "SerialDataFormat"]
+__all__ = [
+    "Blast4Archive",
+    "decode_query_ids",
+    "decode_subject_ids",
+    "SerialDataFormat"
+]

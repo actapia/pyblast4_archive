@@ -17,6 +17,7 @@
 #include <objects/seqloc/Seq_id.hpp>
 #include <objects/seq/Seq_descr.hpp>
 #include <objects/general/User_object.hpp>
+#include <objects/blast/Blast4_subject.hpp>
 #include <string>
 #include <istream>
 #include <memory>
@@ -64,7 +65,7 @@ public:
 
 
 
-boost::python::dict decode_internal_ids(ncbi::objects::CBlast4_archive& b4) {
+boost::python::dict decode_query_ids(ncbi::objects::CBlast4_archive& b4) {
   boost::python::dict dct;
   auto seq_set = b4.GetRequest().GetBody().GetQueue_search().GetQueries().GetBioseq_set().GetSeq_set();
   for (auto c: seq_set) {
@@ -82,6 +83,29 @@ boost::python::dict decode_internal_ids(ncbi::objects::CBlast4_archive& b4) {
   }
   return dct;
 }
+
+boost::python::dict decode_subject_ids(ncbi::objects::CBlast4_archive& b4) {
+  boost::python::dict dct;
+  auto& subjects = b4.GetRequest().GetBody().GetQueue_search().GetSubject();
+  if (subjects.IsSequences()) {
+    auto seqs = subjects.GetSequences();
+    for (auto c : seqs) {
+      auto seqp = c.GetPointer();
+      auto local_id = seqp->GetLocalId()->GetSeqIdString();
+      std::string title;
+      for (auto k : seqp->GetDescr().Get()) {
+        auto l = k.GetPointer();
+        if (l->IsTitle()) {
+          title = l->GetTitle();
+        }
+      }
+      dct[local_id] = title;
+    }
+  }
+  return dct;
+}
+
+
 
 BOOST_PYTHON_MODULE(pyblast4_archive) {
   // class_<boost_adaptbx::python::streambuf>("_PythonStreambuf");
@@ -109,5 +133,6 @@ BOOST_PYTHON_MODULE(pyblast4_archive) {
     .value("xml", ncbi::eSerial_Xml)
     .value("json", ncbi::eSerial_Json);
 
-  def("decode_internal_ids", decode_internal_ids);
+  def("decode_query_ids", decode_query_ids);
+  def("decode_subject_ids", decode_subject_ids);
 }
