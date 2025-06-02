@@ -22,6 +22,7 @@
 #include <istream>
 #include <memory>
 #include <strstream>
+#include "boost/python/ssize_t.hpp"
 #include "python_streambuf.h"
 
 using namespace boost::python;
@@ -77,7 +78,7 @@ public:
 
 
 
-boost::python::dict decode_query_ids(ncbi::objects::CBlast4_archive& b4) {
+boost::python::dict decode_one_query_ids(ncbi::objects::CBlast4_archive& b4) {
   boost::python::dict dct;
   auto seq_set = b4.GetRequest().GetBody().GetQueue_search().GetQueries().GetBioseq_set().GetSeq_set();
   for (auto c: seq_set) {
@@ -96,7 +97,17 @@ boost::python::dict decode_query_ids(ncbi::objects::CBlast4_archive& b4) {
   return dct;
 }
 
-boost::python::dict decode_subject_ids(ncbi::objects::CBlast4_archive& b4) {
+template<boost::python::dict (*decode_one)(ncbi::objects::CBlast4_archive& b4)>
+boost::python::dict decode_all(boost::python::list& archives) {
+  boost::python::dict dct;
+  for (boost::python::ssize_t i = 0; i < boost::python::len(archives); i+=1) {
+    ncbi::objects::CBlast4_archive& b4 = boost::python::extract<ncbi::objects::CBlast4_archive&>(archives[i]);
+    dct |= decode_one(b4);
+  }
+  return dct;
+}
+
+boost::python::dict decode_one_subject_ids(ncbi::objects::CBlast4_archive& b4) {
   boost::python::dict dct;
   auto& subjects = b4.GetRequest().GetBody().GetQueue_search().GetSubject();
   if (subjects.IsSequences()) {
@@ -126,7 +137,8 @@ BOOST_PYTHON_MODULE(pyblast4_archive) {
   
   class_<ncbi::CObjectIStream, boost::noncopyable>("_ObjectIStream", no_init)
     .def("open", Open2, return_value_policy<manage_new_object>()).staticmethod("open")
-    .def("_from_buffer", CreateFromBuffer3, return_value_policy<manage_new_object>()).staticmethod("_from_buffer");
+    .def("_from_buffer", CreateFromBuffer3, return_value_policy<manage_new_object>()).staticmethod("_from_buffer")
+    .def("end_of_data", &ncbi::CObjectIStream::EndOfData);
 
   class_<WrappedObjectIStream, boost::noncopyable, bases<ncbi::CObjectIStream>>("ObjectIStream", no_init)
     .def("from_python_file_like", &WrappedObjectIStream::from_python_file_like, return_value_policy<manage_new_object>()).staticmethod("from_python_file_like")
@@ -146,6 +158,6 @@ BOOST_PYTHON_MODULE(pyblast4_archive) {
     .value("xml", ncbi::eSerial_Xml)
     .value("json", ncbi::eSerial_Json);
 
-  def("decode_query_ids", decode_query_ids);
-  def("decode_subject_ids", decode_subject_ids);
+  def("decode_query_ids", decode_all<decode_one_query_ids>);
+  def("decode_subject_ids", decode_all<decode_one_subject_ids>);
 }

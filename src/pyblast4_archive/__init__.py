@@ -19,9 +19,12 @@ def _Blast4Archive_from_path(cls, f, form):
     return _Blast4Archive_from_istream(cls, ObjectIStream.open(f, form))
 
 def _Blast4Archive_from_istream(cls, istr):
-    b4 = cls()
-    b4.read_from_stream(istr)
-    return b4
+    res = []
+    while not istr.end_of_data():
+        b4 = cls()
+        b4.read_from_stream(istr)
+        res.append(b4)
+    return res
 
 def _Blast4Archive_from_file(cls, f, form):
     form = as_enum(SerialDataFormat, form)
