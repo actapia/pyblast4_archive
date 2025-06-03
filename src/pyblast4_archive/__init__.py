@@ -1,8 +1,10 @@
+import io
 from .pyblast4_archive import (
-    Blast4Archive,
+    Blast4Archive as _Blast4Archive,
     decode_query_ids,
     decode_subject_ids,
     ObjectIStream,
+    ObjectOStream,
     SerialDataFormat
 )
 
@@ -14,37 +16,49 @@ def as_enum(enum, name):
     else:
         return name
 
-def _Blast4Archive_from_path(cls, f, form):
-    form = as_enum(SerialDataFormat, form)
-    return _Blast4Archive_from_istream(cls, ObjectIStream.open(f, form))
+class Blast4Archive(_Blast4Archive):
+    @classmethod
+    def from_path(cls, f, form):
+        form = as_enum(SerialDataFormat, form)
+        return cls.from_istream(ObjectIStream.open(f, form))
 
-def _Blast4Archive_from_istream(cls, istr):
-    res = []
-    while not istr.end_of_data():
-        b4 = cls()
-        b4.read_from_stream(istr)
-        res.append(b4)
-    return res
+    @classmethod
+    def from_istream(cls, istr):
+        res = []
+        while not istr.end_of_data():
+            b4 = cls()
+            b4.read_from_stream(istr)
+            res.append(b4)
+        return res
 
-def _Blast4Archive_from_file(cls, f, form):
-    form = as_enum(SerialDataFormat, form)
-    return _Blast4Archive_from_istream(
-        cls,
-        ObjectIStream.from_python_file_like(form, f),
-    )
+    @classmethod
+    def from_file(cls, f, form):
+        form = as_enum(SerialDataFormat, form)
+        return cls.from_istream(
+            ObjectIStream.from_python_file_like(form, f),
+        )
+    
+    @classmethod
+    def from_bytes(cls, b, form):
+        form = as_enum(SerialDataFormat, form)
+        return cls.from_istream(
+            ObjectIStream.from_bytes(form, b),
+        )
 
-def _Blast4Archive_from_bytes(cls, b, form):
-    form = as_enum(SerialDataFormat, form)
-    return _Blast4Archive_from_istream(
-        cls,
-        ObjectIStream.from_bytes(form, b),
-    )
+    @classmethod
+    def all_to_str(cls, l):
+        return "".join(map(str, l))
+    
+    def write(self, file_like, form):
+        form = as_enum(SerialDataFormat, form)
+        ostr = ObjectOStream.from_python_file_like(form, file_like)
+        self.write_to_stream(ostr)
 
-
-
-Blast4Archive.from_path = classmethod(_Blast4Archive_from_path)
-Blast4Archive.from_file = classmethod(_Blast4Archive_from_file)
-Blast4Archive.from_bytes = classmethod(_Blast4Archive_from_bytes)
+    def __str__(self):
+        strio = io.StringIO()
+        self.write(strio, SerialDataFormat.asn_text)
+        return strio.getvalue()
+        
 
 __all__ = [
     "Blast4Archive",
