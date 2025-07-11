@@ -1,4 +1,9 @@
 #include <iostream>
+#include <functional>
+#include <string>
+#include <istream>
+#include <memory>
+#include <strstream>
 #include <boost/python.hpp>
 #include <corelib/ncbistd.hpp>
 #include <serial/serial.hpp>
@@ -18,10 +23,13 @@
 #include <objects/seq/Seq_descr.hpp>
 #include <objects/general/User_object.hpp>
 #include <objects/blast/Blast4_subject.hpp>
-#include <string>
-#include <istream>
-#include <memory>
-#include <strstream>
+#include <objtools/blast/seqdb_reader/seqdb.hpp>
+#include <objects/blast/Blas_get_searc_resul_reply.hpp>
+#include <objects/seqalign/Seq_align_set.hpp>
+#include <objects/seqalign/Seq_align.hpp>
+#include <objects/seqalign/Dense_seg.hpp>
+#include <objects/general/Dbtag.hpp>
+#include <objects/general/Object_id.hpp>
 #include "boost/python/ssize_t.hpp"
 #include "python_streambuf.h"
 
@@ -120,8 +128,7 @@ boost::python::dict decode_one_query_ids(ncbi::objects::CBlast4_archive& b4) {
   return dct;
 }
 
-template<boost::python::dict (*decode_one)(ncbi::objects::CBlast4_archive& b4)>
-boost::python::dict decode_all(boost::python::list& archives) {
+boost::python::dict decode_all(std::function<boost::python::dict(ncbi::objects::CBlast4_archive&)> decode_one, boost::python::list& archives) {
   boost::python::dict dct;
   for (boost::python::ssize_t i = 0; i < boost::python::len(archives); i+=1) {
     ncbi::objects::CBlast4_archive& b4 = boost::python::extract<ncbi::objects::CBlast4_archive&>(archives[i]);
@@ -146,6 +153,46 @@ boost::python::dict decode_one_subject_ids(ncbi::objects::CBlast4_archive& b4) {
         }
       }
       dct[local_id] = title;
+    }
+  }
+  return dct;
+}
+
+boost::python::dict decode_one_database_oids(ncbi::objects::CBlast4_archive& b4, ncbi::CSeqDB& seq_db) {
+  boost::python::dict dct;
+  for (auto al: b4.GetResults().GetAlignments().Get()) {
+    auto& segs = al->GetSegs();
+        if (!segs.IsDenseg()) {
+      continue;
+    }
+    auto& denseg = segs.GetDenseg();
+    for (auto id : denseg.GetIds()) {
+      if (!id->IsGeneral()) {
+        continue;
+      }
+      auto& general_id = id->GetGeneral();
+      if (!general_id.CanGetDb()) {
+	continue;
+      }
+      auto db = general_id.GetDb();
+      if ((db != "BL_ORD_ID") || !general_id.CanGetTag()) {
+	continue;
+      }
+      auto& tag = general_id.GetTag();
+      if (!tag.IsId()) {
+	continue;
+      }
+      int ord_id = tag.GetId();
+      std::string title;
+      
+      const auto& bioseq = seq_db.GetBioseq(ord_id);
+      for (auto k: bioseq->GetDescr().Get()) {
+        auto l = k.GetPointer();
+        if (l->IsTitle()) {
+          title = l->GetTitle();
+        }
+      }
+      dct[ord_id] = title;
     }
   }
   return dct;
@@ -181,6 +228,8 @@ BOOST_PYTHON_MODULE(pyblast4_archive) {
     .def("read_from_stream", &WrappedSerialObject<ncbi::objects::CBlast4_archive>::read_from_stream)
     .def("write_to_stream", &WrappedSerialObject<ncbi::objects::CBlast4_archive>::write_to_stream);
 
+  class_<ncbi::CSeqDB, boost::noncopyable>("SeqDB", boost::python::init<std::string, ncbi::CSeqDB::ESeqType>());
+
   enum_<ncbi::ESerialDataFormat>("SerialDataFormat")
     .value("none", ncbi::eSerial_None)
     .value("asn_text", ncbi::eSerial_AsnText)
@@ -188,6 +237,20 @@ BOOST_PYTHON_MODULE(pyblast4_archive) {
     .value("xml", ncbi::eSerial_Xml)
     .value("json", ncbi::eSerial_Json);
 
-  def("decode_query_ids", decode_all<decode_one_query_ids>);
-  def("decode_subject_ids", decode_all<decode_one_subject_ids>);
+  enum_<ncbi::CSeqDB::ESeqType>("_SeqDBSeqType")
+    .value("protein", ncbi::CSeqDB::ESeqType::eProtein)
+    .value("nucleotide", ncbi::CSeqDB::ESeqType::eNucleotide)
+    .value("unknown", ncbi::CSeqDB::ESeqType::eUnknown);
+
+  def("decode_query_ids", +[](boost::python::list& b4) {
+    return decode_all(decode_one_query_ids, b4);
+  });
+  def("decode_subject_ids", +[](boost::python::list& b4) {
+    return decode_all(decode_one_subject_ids, b4);
+  });
+  def("decode_database_oids", +[](boost::python::list& b4, ncbi::CSeqDB& db) {
+     return decode_all([&db](ncbi::objects::CBlast4_archive& a) {
+       return decode_one_database_oids(a, db);
+     }, b4);
+  });
 }

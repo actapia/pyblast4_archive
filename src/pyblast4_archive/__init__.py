@@ -3,9 +3,12 @@ from .pyblast4_archive import (
     Blast4Archive as _Blast4Archive,
     decode_query_ids,
     decode_subject_ids,
+    decode_database_oids,
     ObjectIStream,
     ObjectOStream,
-    SerialDataFormat
+    SerialDataFormat,
+    SeqDB as _SeqDB,
+    _SeqDBSeqType
 )
 
 def as_enum(enum, name):
@@ -15,6 +18,12 @@ def as_enum(enum, name):
         return enum(name)
     else:
         return name
+
+class SeqDB(_SeqDB):
+    def __init__(self, path, seq_type):
+        path = str(path)
+        seq_type = as_enum(_SeqDBSeqType, seq_type)
+        super().__init__(path, seq_type)
 
 class Blast4Archive(_Blast4Archive):
     @classmethod
@@ -64,5 +73,7 @@ __all__ = [
     "Blast4Archive",
     "decode_query_ids",
     "decode_subject_ids",
-    "SerialDataFormat"
+    "decode_database_oids",
+    "SerialDataFormat",
+    "SeqDB",
 ]
