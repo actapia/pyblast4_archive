@@ -9,7 +9,7 @@ add more to them later if the need arises.
 This software has been tested with the following dependencies. Similar
 configurations might also work.
 
-* NCBI C++ Toolkit 29.1.0
+* NCBI C++ Toolkit 29.3.0
 * Boost.Python 1.83.0
 
 ## Installing NCBI C++ Toolkit
@@ -27,26 +27,33 @@ You also probably need to install `libbz2`, `cmake`, `zlib`, and various `boost`
 libraries (get all of them, if you can).
 
 Download the source tarball from the GitHub releases, extract the archive and
-change to the root directory of the repository. We only want to build part of
-the toolkit, so we'll create a file called `projects` that specifies which parts
-to build. The `projects` file should have the following contents:
+change to the root directory of the repository. 
+<!-- We only want to build part of -->
+<!-- the toolkit, so we'll create a file called `projects` that specifies which parts -->
+<!-- to build. The `projects` file should have the following contents: -->
 
-```text
-corelib$
-util
-objects
--objects/.*/test
--objects/[^/]*/demo
--objects/genomecoll/gc_cli
-serial
--serial/test
-test update-only
-```
+<!-- ```text -->
+<!-- corelib$ -->
+<!-- util -->
+<!-- objects -->
+<!-- -objects/.*/test -->
+<!-- -objects/[^/]*/demo -->
+<!-- -objects/genomecoll/gc_cli -->
+<!-- serial -->
+<!-- -serial/test -->
+<!-- test update-only -->
+<!-- ``` -->
 
-Then, configure your build with `./configure`:
+<!-- Then, configure your build with `./configure`: -->
+
+<!-- ```bash -->
+<!-- ./configure --with-projects=projects -->
+<!-- ``` -->
+
+Configure your build with `./configure`:
 
 ```bash
-./configure --with-projects=projects
+./configure
 ```
 
 If that succeeds, build with `make`:
