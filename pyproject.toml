@@ -18,10 +18,7 @@ license = "BSD-3-Clause"
 name = "pyblast4_archive.pyblast4_archive"
 sources = ["src/pyblast4_archive.cpp"]
 include-dirs = ["/usr/local/include/ncbi-tools++", "./include"]
-extra-link-args = ["-Wl,--no-undefined"]
 libraries = [
-    "boost_python312",
-    "python3.12",
     "mmdb",
     "biblio",
     "general",
