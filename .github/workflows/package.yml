@@ -86,6 +86,11 @@ jobs:
           ncbi-cxx-toolkit boost-python-manylinux
           ncbi-cxx-toolkit-devel boost-python-manylinux-devel
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}        
+          
+
       - name: Build the package for all Python versions
         run: >          
           sudo podman exec -w /root ${{env.container_id}}
