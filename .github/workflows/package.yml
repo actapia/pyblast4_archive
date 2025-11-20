@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    name: Build on ${{inputs.architecture}} Linux platform
+    name: Build on ${{matrix.architecture}} Linux platform
     strategy:
       matrix:
         architecture: [x86_64, aarch64, ppc64le, s390x, i386]
@@ -64,8 +64,9 @@ jobs:
       - name: Start container
         run: >
           echo container_id="$(
-          sudo podman run -di ${{matrix.container}}
+          sudo podman run -di
           -v "$(realpath .):/root"
+          ${{matrix.container}}
           )" >> "$GITHUB_ENV"
       
       - name: Mount container
