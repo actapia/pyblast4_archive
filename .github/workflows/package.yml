@@ -93,7 +93,7 @@ jobs:
 
       - name: Change wheelhouse ownership
         run: >
-          chown -R "$USER" wheelhouse
+          sudo chown -R "$USER" wheelhouse
 
       - name: Upload RPMs
         id: artifact-upload
