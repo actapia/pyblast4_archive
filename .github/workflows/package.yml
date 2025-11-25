@@ -20,26 +20,31 @@ jobs:
             runner: ubuntu-latest
             binfmt_arch: x86_64
             container: quay.io/pypa/manylinux_2_28_x86_64
+            plat: manylinux_2_28_x86_64
             native: true
           - architecture: aarch64
             runner: ubuntu-24.04-arm
             binfmt_arch: aarch64
             container: quay.io/pypa/manylinux_2_28_aarch64
+            plat: manylinux_2_28_aarch64
             native: true
           - architecture: ppc64le
             runner: ubuntu-latest
             binfmt_arch: ppc64le
             container: quay.io/pypa/manylinux_2_28_ppc64le
+            plat: manylinux_2_28_ppc64le
             native: false
           - architecture: s390x
             runner: ubuntu-latest
             binfmt_arch: s390x
             container: quay.io/pypa/manylinux_2_28_s390x
+            plat: manylinux_2_28_s390x
             native: false
           - architecture: i386
             runner: ubuntu-latest
             binfmt_arch: 386
             container: quay.io/pypa/manylinux_2_28_i686
+            plat: manylinux_2_28_i686
             native: false
 
     runs-on: ${{matrix.runner}}
@@ -96,16 +101,22 @@ jobs:
           sudo podman exec -w /root ${{env.container_id}}
           bash manylinux_build.sh
 
+      - name: Repair wheels
+        run: >
+          sudo podman exec -w /root ${{env.container_id}}
+          find wheelhouse -name '*.whl' -exec auditwheel repair {}
+          --plat ${{matrix.plat}} -w wheelhouse \;
+
       - name: Change wheelhouse ownership
         run: >
           sudo chown -R "$USER" wheelhouse
 
-      - name: Upload RPMs
+      - name: Upload wheels
         id: artifact-upload
         uses: actions/upload-artifact@v4
         with:
           name: ${{matrix.architecture}}
-          path: wheelhouse/*.whl
+          path: 'wheelhouse/*manylinux*.whl'
           if-no-files-found: error
           retention-days: 1
           overwrite: true
