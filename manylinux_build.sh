@@ -39,7 +39,11 @@ for pydir in /opt/python/*; do
     	      "-I$bpy_include"
     	      "-I$python_include")
     LDFLAGS=("-L$toolkit_lib"
-    	     "-L$bpy_lib")
+    	     "-L$bpy_lib"
+	     "-Wl,-rpath"
+	     "-Wl,$toolkit_lib"
+	     "-Wl,-rpath"
+	     "-Wl,$bpy_lib")
     CXXFLAGS="${CXXFLAGS[*]}" LDFLAGS="${LDFLAGS[*]}" \
     	    "$pydir/bin/python" -m pip wheel . -w /root/wheelhouse
     
