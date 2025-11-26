@@ -34,18 +34,22 @@ for pydir in /opt/python/*; do
     	>&2 echo "Could not find libboost_python for version $version_name."
     	exit 1
     fi
+    echo "Building for $version_name"
     python_include="$(find_dep "$pydir"/include/ "$version_name include dir" /)"
     CXXFLAGS=("-I$toolkit_include/ncbi-tools++"
     	      "-I$bpy_include"
     	      "-I$python_include")
     LDFLAGS=("-L$toolkit_lib"
     	     "-L$bpy_lib"
+	     "-lboost_python$version-$version_name"
 	     "-Wl,-rpath"
 	     "-Wl,$toolkit_lib"
 	     "-Wl,-rpath"
 	     "-Wl,$bpy_lib")
     CXXFLAGS="${CXXFLAGS[*]}" LDFLAGS="${LDFLAGS[*]}" \
     	    "$pydir/bin/python" -m pip wheel . -w /root/wheelhouse
-    
+    echo "Testing package can be imported on $version_name"
+    "$pydir/bin/python" -m pip install /root/wheelhouse/*-"$version_name"*.whl
+    "$pydir/bin/python" -c 'import pyblast4_archive'
 done
 
