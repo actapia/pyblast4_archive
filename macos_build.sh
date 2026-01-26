@@ -44,7 +44,8 @@ function build {
 	     "-Wl,$toolkit_lib"
 	     "-Wl,-rpath"
 	     "-Wl,$bpy_lib")
-    CXXFLAGS="${CXXFLAGS[*]}" LDFLAGS="${LDFLAGS[*]}" \
+    export _PYTHON_HOST_PLATFORM="macosx-$(sw_vers -productVersion)-$(uname -m)"
+    CXXFLAGS="${CXXFLAGS[*]}" LDFLAGS="${LDFLAGS[*]}" 
     	    "$1/bin/$python_bin" -m pip wheel . -w wheelhouse
     echo "Testing package can be imported on $version_name"
     "$1/bin/$python_bin" -m pip install wheelhouse/*-"$version_name"*.whl
