@@ -10,7 +10,7 @@ on:
         default: false
 
 jobs:
-  build:
+  build-linux:
     name: Build on ${{matrix.architecture}} Linux platform
     strategy:
       matrix:
@@ -115,10 +115,84 @@ jobs:
         id: artifact-upload
         uses: actions/upload-artifact@v4
         with:
-          name: ${{matrix.architecture}}
+          name: wheel_${{matrix.architecture}}
           path: 'wheelhouse/*manylinux*.whl'
           if-no-files-found: error
           retention-days: 1
           overwrite: true
 
     
+    build-macos:
+      name: Build on macOS
+      strategy:
+        matrix:
+          runner:
+            - macos-14
+            - macos-15-intel
+            - macos-15
+            - macos-26
+
+          include:
+            - runner: macos-14
+              codename: Sonoma
+
+            - runner: macos-15
+              codename: Sequoia
+
+            - runner: macos-15-intel
+              codename: Sequoia            
+
+            - runner: macos-26
+              codename: Tahoe
+
+      runs-on: ${{matrix.runner}}
+      steps:
+        - uses: actions/checkout@v5
+
+        - name: Install Python 3.13
+          run: brew install --overwrite python@3.13
+
+        - name: Tap actapia/cibuildwheel_packages
+          run: brew tap actapia/cibuildwheel_packages
+
+        - name: Install boost-python-cibuildwheel
+          run: brew install boost-python-cibuildwheel
+
+        - name: Install ncbi-cxx-toolkit
+          run: brew install ncbi-cxx-toolkit
+
+        - name: Create a venv
+          run: python3.13 -m venv cibuildwheel
+
+        - name: Install cibw-install-pythons
+          run: cibuildwheel/bin/python -m pip install cibw-install-pythons
+
+        - name: Install all Python versions
+          env:
+            CI: 1
+            CIBW_CACHE_PATH: /Library/Caches/cibuildwheel
+          run: >
+            cibuildwheel/bin/python -m cibw-install-pythons macos --ensurepip
+
+        - name: Build the package for all Python versions
+          run: zsh macos_build.sh
+
+        - name: Install delocate
+          run: cibuildwheel/bin/python -m pip install delocate
+
+        - name: Delocate wheelhouse
+          run: >
+            zsh delocate_all.sh cibuildwheel/bin/python wheelhouse
+            delocated_wheelhouse
+
+        - name: Upload wheels
+          id: artifact-upload
+          uses: actions/upload-artifact@v4
+          with:
+            name: wheel_${{matrix.runner}}
+            path: 'delocated_wheelhouse/*.whl'
+            if-no-files-found: error
+            retention-days: 1
+            overwrite: true
+
+        
