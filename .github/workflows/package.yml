@@ -127,7 +127,9 @@ jobs:
           set -o pipefail;
           dep_env/bin/python -m auditwheel-get-external-deps
           --plat ${{matrix.plat}} wheelhouse/* |
-          xargs rpm -qf | sort -u
+          xargs rpm -qf |
+          sort -u |
+          xargs dnf repoquery --qf '%{NAME}'
           " > linux_deps-${{matrix.architecture}}
 
       - name: Upload wheels
