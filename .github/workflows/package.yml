@@ -111,6 +111,13 @@ jobs:
         run: >
           sudo chown -R "$USER" wheelhouse
 
+      - name: Get dependency packages
+        run: >
+          sudo podman exec -w /root ${{env.container_id}} bash -c "
+          python get_external_deps.py --plat ${{matrix.plat}} wheelhouse/* |
+          xargs rpm -qf | sort -u
+          " > linux_deps-${{matrix.architecture}}      
+
       - name: Upload wheels
         id: artifact-upload
         uses: actions/upload-artifact@v4
@@ -121,6 +128,15 @@ jobs:
           retention-days: 1
           overwrite: true
 
+      - name: Upload dependency list
+        id: artifact-upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux_deps-${{matrix.architecture}}
+          path: linux_deps-${{matrix.architecture}}
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: true          
     
   build-macos:
     name: Build on macOS
@@ -174,12 +190,15 @@ jobs:
         run: zsh macos_build.sh
 
       - name: Install delocate
-        run: cibuildwheel/bin/python -m pip install delocate
+        run: cibuildwheel/bin/python -m pip install delocate          
 
       - name: Delocate wheelhouse
         run: >
           zsh delocate_all.sh cibuildwheel/bin/python wheelhouse
-          delocated_wheelhouse
+          delocated_wheelhouse |
+          xargs -L 1 readlink -f |
+          sed "s,^$(brew --prefix)/Cellar/\([^/]*\).*,\1," |
+          sort -u > macos_deps-${{matrix.runner}}
 
       - name: Upload wheels
         id: artifact-upload
@@ -190,5 +209,16 @@ jobs:
           if-no-files-found: error
           retention-days: 1
           overwrite: true
+
+      - name: Upload dependency list
+        id: artifact-upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos_deps_${{matrix.runner}}
+          path: macos_deps-${{matrix.runner}}
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: true
+          
 
         

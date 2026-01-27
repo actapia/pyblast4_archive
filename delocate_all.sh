@@ -3,5 +3,6 @@ export DYLD_LIBRARY_PATH="$(brew --prefix ncbi-cxx-toolkit)/lib:$(brew --prefix 
 set -x
 set -e
 for f in "$2"/*.whl; do
-    "$1" -m delocate.cmd.delocate_wheel -w "$3" "$f"
+    "$1" -m delocate.cmd.delocate_listdeps "$f"
+    "$1" -m delocate.cmd.delocate_wheel -w "$3" "$f" > /dev/null
 done
