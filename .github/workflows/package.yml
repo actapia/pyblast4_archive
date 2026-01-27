@@ -111,12 +111,24 @@ jobs:
         run: >
           sudo chown -R "$USER" wheelhouse
 
+      - name: Make external dep environment
+        run: >
+          sudo podman exec -w /root ${{env.container_id}}
+          /opt/python/cp313-cp313/bin/python -m venv dep_env
+
+      - name: Install auditwheel-get-external-deps
+        run: >
+          sudo podman exec -w /root ${{env.container_id}}
+          dep_env/bin/python -m pip install auditwheel-get-external-deps
+
       - name: Get dependency packages
         run: >
           sudo podman exec -w /root ${{env.container_id}} bash -c "
-          python get_external_deps.py --plat ${{matrix.plat}} wheelhouse/* |
+          set -o pipefail;
+          dep_env/bin/python -m auditwheel-get-external-deps
+          --plat ${{matrix.plat}} wheelhouse/* |
           xargs rpm -qf | sort -u
-          " > linux_deps-${{matrix.architecture}}      
+          " > linux_deps-${{matrix.architecture}}
 
       - name: Upload wheels
         id: wheel-upload
