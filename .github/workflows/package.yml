@@ -48,10 +48,10 @@ jobs:
             native: false
 
     runs-on: ${{matrix.runner}}
-    
+
     steps:
       - uses: actions/checkout@v5
-        
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         if: ${{ ! matrix.native }}
@@ -73,12 +73,12 @@ jobs:
           -v "$(realpath .):/root"
           ${{matrix.container}}
           )" >> "$GITHUB_ENV"
-      
+
       - name: Mount container
         run: >
           echo mount="$(sudo podman mount ${{env.container_id}})"
           >> "$GITHUB_ENV"
-      
+
       - name: Copy repo file to container
         run: >
           sudo cp "$HOME"/manylinux_packages/manylinux_packages.repo
@@ -93,11 +93,11 @@ jobs:
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}        
-          
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+
 
       - name: Build the package for all Python versions
-        run: >          
+        run: >
           sudo podman exec -w /root ${{env.container_id}}
           bash manylinux_build.sh
 
@@ -150,8 +150,8 @@ jobs:
           path: linux_deps-${{matrix.architecture}}
           if-no-files-found: error
           retention-days: 1
-          overwrite: true          
-    
+          overwrite: true
+
   build-macos:
     name: Build on macOS
     strategy:
@@ -166,7 +166,7 @@ jobs:
             codename: Sequoia
 
           - runner: macos-15-intel
-            codename: Sequoia            
+            codename: Sequoia
 
           - runner: macos-26
             codename: Tahoe
@@ -204,7 +204,7 @@ jobs:
         run: zsh macos_build.sh
 
       - name: Install delocate
-        run: cibuildwheel/bin/python -m pip install delocate          
+        run: cibuildwheel/bin/python -m pip install delocate
 
       - name: Delocate wheelhouse
         run: >
@@ -233,6 +233,133 @@ jobs:
           if-no-files-found: error
           retention-days: 1
           overwrite: true
-          
 
-        
+  macos-deps:
+    name: Fetch macOS sources for release
+    needs: [build-macos]
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Download dependency lists
+        id: dep-list-download
+        uses: actions/download-artifact@v5
+        with:
+          pattern: macos_deps*
+
+      - name: Tap actapia/cibuildwheel_packages
+        run: brew tap actapia/cibuildwheel_packages
+
+      - name: Prepare deps
+        run: >
+          sort -u < macos_deps* | xargs -L 1 zsh prepare_dep_macos.sh
+
+      - name: Rename deps
+        run: mv deps macos_deps
+
+      - name: Upload deps
+        id: deps-upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos_deps
+          path: macos_deps
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: true
+
+  linux-deps:
+    name: Fetch Linux sources for releas
+    needs: [build-linux]
+    runs-on: ubuntu-latest
+    container: quay.io/pypa/manylinux_2_28_x86_64
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Download dependency lists
+        id: dep-list-download
+        uses: actions/download-artifact@v5
+        with:
+          pattern: linux_deps*
+
+      - name: Prepare Linux deps
+        run: >
+          sort -u < linux_deps* | xargs -L 1 bash prepare_dep_linux.sh
+
+      - name: Clone manylinux_packages repo
+        run: >
+          git clone https://github.com/actapia/manylinux_packages
+          "$HOME"/manylinux_packages
+
+      - name: Install manylinux_packages DNF repo
+        run: >
+          mv "$HOME"/manylinux_packages/manylinux_packages.repo
+          /etc/yum.repos.d/
+
+      - name: Install rpm/yum build tools
+        run: dnf -y install rpm-build rpm-devel rpmdevtools rpm-sign yum-utils
+
+      - name: Prepare deps
+        run: >
+          sort -u < linux_deps* | xargs -L 1 bash prepare_dep_linux.sh
+
+      - name: Rename deps
+        run: mv deps linux_deps
+
+      - name: Upload deps
+        id: deps-upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux_deps
+          path: linux_deps
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: true
+
+  release-source-tar:
+    name: Create release source tarball
+    needs: [macos-deps, linux-deps]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Download Linux deps
+        id: linux-deps-download
+        uses: actions/download-artifact@v5
+        with:
+          name: linux_deps
+
+      - name: Download macOS deps
+        id: macos-deps-download
+        uses: actions/download-artifact@v5
+        with:
+          name: macos_deps
+
+      - name: Build deps directory
+        run: |
+          mkdir deps
+          mv linux_deps deps/linux
+          mv macos_deps deps/macos
+
+      - name: Install zstd
+        run: apt install -y zstd
+
+      - name: Create source tarball
+        run: >
+          tar -I 'zstd -T0 --adapt' -cvf
+          ../${{ github.event.repository.name }}.tar.zst .
+
+      - name: Rename source tarball
+        if: ${{ workflow.event_name == 'release' }}
+        run: "mv ../${{ github.event.repository.name }}.tar.zst \
+          ../${{ github.event.repository.name }}-\
+          ${{ github.event.release.tag_name }}.tar.zst"
+
+      - name: Upload source tarball
+        id: source-upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: source
+          path: ../${{ github.event.repository.name }}*.tar.zst
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: true
