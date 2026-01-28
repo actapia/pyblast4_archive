@@ -91,11 +91,6 @@ jobs:
           ncbi-cxx-toolkit boost-python-manylinux
           ncbi-cxx-toolkit-devel boost-python-manylinux-devel
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
-
-
       - name: Build the package for all Python versions
         run: >
           sudo podman exec -w /root ${{env.container_id}}
@@ -250,6 +245,10 @@ jobs:
       - name: Tap actapia/cibuildwheel_packages
         run: brew tap actapia/cibuildwheel_packages
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}        
+
       - name: Prepare deps
         run: >
           cat macos_deps*/* | sort -u | xargs -L 1 zsh prepare_dep_macos.sh
@@ -268,7 +267,7 @@ jobs:
           overwrite: true
 
   linux-deps:
-    name: Fetch Linux sources for releas
+    name: Fetch Linux sources for release
     needs: [build-linux]
     runs-on: ubuntu-latest
     container: quay.io/pypa/manylinux_2_28_x86_64
@@ -280,10 +279,6 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           pattern: linux_deps*
-
-      - name: Prepare Linux deps
-        run: >
-          cat linux_deps*/* | sort -u | xargs -L 1 bash prepare_dep_linux.sh
 
       - name: Clone manylinux_packages repo
         run: >
@@ -300,8 +295,8 @@ jobs:
 
       - name: Prepare deps
         run: >
-          sort -u < linux_deps* | xargs -L 1 bash prepare_dep_linux.sh
-
+          cat linux_deps* | sort -u | xargs -L 1 bash prepare_dep_linux.sh
+          
       - name: Rename deps
         run: mv deps linux_deps
 
