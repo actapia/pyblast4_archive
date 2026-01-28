@@ -349,7 +349,7 @@ jobs:
           ../${{ github.event.repository.name }}.tar.zst .
 
       - name: Rename source tarball
-        if: ${{ workflow.event_name == 'release' }}
+        if: ${{ github.event_name == 'release' }}
         run: "mv ../${{ github.event.repository.name }}.tar.zst \
           ../${{ github.event.repository.name }}-\
           ${{ github.event.release.tag_name }}.tar.zst"
