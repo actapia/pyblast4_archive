@@ -252,7 +252,7 @@ jobs:
 
       - name: Prepare deps
         run: >
-          sort -u < macos_deps* | xargs -L 1 zsh prepare_dep_macos.sh
+          cat macos_deps* | sort -u | xargs -L 1 zsh prepare_dep_macos.sh
 
       - name: Rename deps
         run: mv deps macos_deps
@@ -283,7 +283,7 @@ jobs:
 
       - name: Prepare Linux deps
         run: >
-          sort -u < linux_deps* | xargs -L 1 bash prepare_dep_linux.sh
+          cat linux_deps* | sort -u | xargs -L 1 bash prepare_dep_linux.sh
 
       - name: Clone manylinux_packages repo
         run: >
