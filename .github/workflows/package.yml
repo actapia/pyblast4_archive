@@ -295,7 +295,7 @@ jobs:
 
       - name: Prepare deps
         run: >
-          cat linux_deps* | sort -u | xargs -L 1 bash prepare_dep_linux.sh
+          cat linux_deps*/* | sort -u | xargs -L 1 bash prepare_dep_linux.sh
           
       - name: Rename deps
         run: mv deps linux_deps
