@@ -338,7 +338,7 @@ jobs:
           path: deps/macos
 
       - name: Install zstd
-        run: apt install -y zstd
+        run: sudo apt install -y zstd
 
       - name: Create source tarball
         run: >
