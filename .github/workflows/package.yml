@@ -317,23 +317,25 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Make deps directories
+        run: |
+          mkdir deps
+          mkdir deps/linux
+          mkdir deps/macos
+
       - name: Download Linux deps
         id: linux-deps-download
         uses: actions/download-artifact@v5
         with:
           name: linux_deps
+          path: deps/linux
 
       - name: Download macOS deps
         id: macos-deps-download
         uses: actions/download-artifact@v5
         with:
           name: macos_deps
-
-      - name: Build deps directory
-        run: |
-          mkdir deps
-          mv linux_deps deps/linux
-          mv macos_deps deps/macos
+          path: deps/macos
 
       - name: Install zstd
         run: apt install -y zstd
