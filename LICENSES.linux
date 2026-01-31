@@ -1,0 +1,16 @@
+LINUX DEPENDENCY LICENSES
+
+Portable Linux release wheels of this software include dependency binaries
+retrieved from the DNF repositories of AlmaLinux 8 (the base of the
+manylinux_2_28 container image), Extra Packages for Enterprise Linux 8 (EPEL,
+maintained by the Fedora Project), and a custom repository hosted at
+https://www.cs.uky.edu/~acta225/manylinux_packages/almalinux/8 .
+Corresponding release source tarballs for this software also include the source
+code for these dependencies, located under the deps/linux directory. Any
+included source code has been obtained from the corresponding source packages
+provided in the same DNF repositories.
+
+In release source tarballs of this software, dependencies and their licenses are
+listed below. Each dependency's full license text can be found with the
+dependency's source code under the deps/linux directory.
+

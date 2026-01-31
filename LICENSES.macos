@@ -1,0 +1,14 @@
+MACOS DEPENDENCY LICENSES
+
+Portable macOS release wheels of this software include dependency binaries
+retrieved from the Homebrew homebrew/cask and homebrew/core taps, as well as a
+custom actapia/cibuildwheel_packages tap. Corresponding release source tarballs
+for this software also include the source code for these dependencies, located
+under the deps/macos directory. Any included source code has been obtained from
+upstream source and patches using the get-source external command provided by
+the actapia/cibuildwheel_packages tap.
+
+In release source tarballs of this software, dependencies and their licenses are
+listed below. Each dependency's full license text can be found with the
+dependency's source code under the deps/macos directory.
+
