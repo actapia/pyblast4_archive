@@ -390,8 +390,8 @@ Parameters:
 			     "Internal C++ class representing a BLAST sequence "
 			     "database (nucleotide or protein).",
 			     boost::python::init<std::string,
-			                         ncbi::CSeqDB::ESeqType>(),
-);
+			                         ncbi::CSeqDB::ESeqType>()
+			     );
 
   enum_<ncbi::ESerialDataFormat>("SerialDataFormat",
 				 "Serialization format of data to be streamed.")
