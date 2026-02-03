@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import io
 from .pyblast4_archive import (
     Blast4Archive as _Blast4Archive,
