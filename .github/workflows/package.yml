@@ -382,7 +382,7 @@ jobs:
           name: macos_licenses
 
       - name: Move LICENSES
-        run: >
+        run: |          
           mv linux_licenses/LICENSES.linux .
           mv macos_licenses/LICENSES.macos .
           rm -r linux_licenses macos_licenses
