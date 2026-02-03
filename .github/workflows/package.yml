@@ -271,6 +271,16 @@ jobs:
           retention-days: 1
           overwrite: true
 
+      - name: Upload LICENSES
+        id: licenses-upload
+uses: actions/upload-artifact@v4
+        with:
+          name: macos_licenses
+          path: LICENSES.macos
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: true          
+
   linux-deps:
     name: Fetch Linux sources for release
     needs: [build-linux]
@@ -321,6 +331,16 @@ jobs:
           retention-days: 1
           overwrite: true
 
+      - name: Upload LICENSES
+        id: licenses-upload
+uses: actions/upload-artifact@v4
+        with:
+          name: linux_licenses
+          path: LICENSES.linux
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: true   
+
   release-source-tar:
     name: Create release source tarball
     needs: [macos-deps, linux-deps]
@@ -348,18 +368,43 @@ jobs:
           name: macos_deps
           path: deps/macos
 
+      - name: Download Linux LICENSES
+        id: linux-licenses-download
+        uses: actions/download-artifact@v5
+        with:
+          name: linux_licenses
+          path: deps/linux
+
+      - name: Download macOS LICENSES
+        id: macos-licenses-download
+        uses: actions/download-artifact@v5
+        with:
+          name: macos_licenses
+
+      - name: Move LICENSES
+        run: >
+          mv linux_licenses/LICENSES.linux .
+          mv macos_licenses/LICENSES.macos .
+          rm -r linux_licenses macos_licenses
+
       - name: Install zstd
         run: sudo apt install -y zstd
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}        
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+
+      - name: Rename source directory
+        if: ${{ github.event_name == 'release' }}
+        run: "mv ${{ github.event.repository.name }} \
+          ${{ github.event.repository.name }}-\
+          ${{ github.event.release.tag_name }}"
 
       - name: Create source tarball
         run: >
           cd .. && tar -I 'zstd -T0 --adapt' -cvf
-          ../${{ github.event.repository.name }}.tar.zst
-          ${{ github.event.repository.name }}
+          ${{ github.event.repository.name }}.tar.zst
+          ${{ github.event.repository.name }}*/
 
       - name: Move source tarball
         run: mv ../${{ github.event.repository.name }}.tar.zst .
