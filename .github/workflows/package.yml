@@ -373,7 +373,6 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: linux_licenses
-          path: deps/linux
 
       - name: Download macOS LICENSES
         id: macos-licenses-download
@@ -385,11 +384,11 @@ jobs:
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}          
 
-      - name: Move LICENSES
-        run: |          
-          mv linux_licenses/LICENSES.linux .
-          mv macos_licenses/LICENSES.macos .
-          rm -r linux_licenses macos_licenses
+      # - name: Move LICENSES
+      #   run: |          
+      #     mv linux_licenses/LICENSES.linux .
+      #     mv macos_licenses/LICENSES.macos .
+      #     rm -r linux_licenses macos_licenses
 
       - name: Install zstd
         run: sudo apt install -y zstd
