@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyblast4_archive"
-version = "0.1.1"
+version = "0.1.2"
 authors = [
     { name = "Andrew Tapia", email = "andrew.tapia@uky.edu" }
 ]
@@ -12,7 +12,7 @@ description =  "Rudimentary BLAST archive reading in Python"
 # readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
-license = "BSD-3-Clause"
+license = "GPL-3.0-only"
 
 [[tool.setuptools.ext-modules]]
 name = "pyblast4_archive.pyblast4_archive"
