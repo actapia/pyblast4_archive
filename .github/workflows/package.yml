@@ -9,8 +9,8 @@ on:
         required: false
         default: false
 
-    release:
-      types: [published]
+  release:
+    types: [published]
 
 permissions:
   contents: read      
