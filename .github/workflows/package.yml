@@ -401,8 +401,8 @@ jobs:
 
       - name: Rename source directory
         if: ${{ github.event_name == 'release' }}
-        run: "mv ${{ github.event.repository.name }} \
-          ${{ github.event.repository.name }}-\
+        run: "mv ../${{ github.event.repository.name }} \
+          ../${{ github.event.repository.name }}-\
           ${{ github.event.release.tag_name }}"
 
       - name: Create source tarball
