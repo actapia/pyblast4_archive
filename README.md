@@ -157,11 +157,11 @@ package are included. For macOS dependencies, the Homebrew Formula `.rb` file is
 included. In both cases, any patches for the pakcage have been pre-applied.
 
 Full license texts for each dependency may be found with the dependency's source
-code under `deps/`. Additionally, the [LICENSES.linux] and [LICENSES.macos]
-files summarize the licenses of the transitive dependencies bundled in the
-portable wheels.
+code under `deps/`. Additionally, the [LICENSES.linux](LICENSES.linux) and
+[LICENSES.macos](LICENSES.macos) files summarize the licenses of the transitive
+dependencies bundled in the portable wheels.
 
 ## License
 
 This software is licensed under the GNU General Public License, Version 3, which
-may be found at [LICENSE].
+may be found at [LICENSE](LICENSE).
