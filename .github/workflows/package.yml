@@ -353,38 +353,41 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        path: ${{ github.event.repository.name }}
 
       - name: Make deps directories
         run: |
-          mkdir deps
-          mkdir deps/linux
-          mkdir deps/macos
+          mkdir ${{ github.event.repository.name}}/deps
+          mkdir ${{ github.event.repository.name}}/deps/linux
+          mkdir ${{ github.event.repository.name}}/deps/macos
 
       - name: Download Linux deps
         id: linux-deps-download
         uses: actions/download-artifact@v5
         with:
           name: linux_deps
-          path: deps/linux
+          path: ${{ github.event.repository.name}}/deps/linux
 
       - name: Download macOS deps
         id: macos-deps-download
         uses: actions/download-artifact@v5
         with:
           name: macos_deps
-          path: deps/macos
+          path: ${{ github.event.repository.name}}/deps/macos
 
       - name: Download Linux LICENSES
         id: linux-licenses-download
         uses: actions/download-artifact@v5
         with:
           name: linux_licenses
+          path: ${{ github.event.repository.name}}
 
       - name: Download macOS LICENSES
         id: macos-licenses-download
         uses: actions/download-artifact@v5
         with:
           name: macos_licenses
+          path: ${{ github.event.repository.name}}
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
@@ -401,18 +404,15 @@ jobs:
 
       - name: Rename source directory
         if: ${{ github.event_name == 'release' }}
-        run: "mv ../${{ github.event.repository.name }} \
-          ../${{ github.event.repository.name }}-\
+        run: "mv ${{ github.event.repository.name }} \
+          ${{ github.event.repository.name }}-\
           ${{ github.event.release.tag_name }}"
 
       - name: Create source tarball
         run: >
-          cd .. && tar -I 'zstd -T0 --adapt' -cvf
+          tar -I 'zstd -T0 --adapt' -cvf
           ${{ github.event.repository.name }}.tar.zst
           ${{ github.event.repository.name }}*/
-
-      - name: Move source tarball
-        run: mv ../${{ github.event.repository.name }}.tar.zst .
 
       - name: Rename source tarball
         if: ${{ github.event_name == 'release' }}
