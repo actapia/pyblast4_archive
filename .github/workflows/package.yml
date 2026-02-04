@@ -94,7 +94,7 @@ jobs:
       - name: Build the package for all Python versions
         run: >
           sudo podman exec -w /root ${{env.container_id}}
-          bash manylinux_build.sh
+          bash ci/manylinux_build.sh
 
       - name: Repair wheels
         run: >
@@ -196,14 +196,14 @@ jobs:
           cibuildwheel/bin/python -m cibw-install-pythons macos --ensurepip
 
       - name: Build the package for all Python versions
-        run: zsh macos_build.sh
+        run: zsh ci/macos_build.sh
 
       - name: Install delocate
         run: cibuildwheel/bin/python -m pip install delocate
 
       - name: Delocate wheelhouse
         run: >
-          zsh delocate_all.sh cibuildwheel/bin/python wheelhouse
+          zsh ci/delocate_all.sh cibuildwheel/bin/python wheelhouse
           delocated_wheelhouse |
           xargs -L 1 readlink -f |
           sed "s,^$(brew --prefix)/Cellar/\([^/]*\).*,\1," |
@@ -252,7 +252,7 @@ jobs:
         run: >
           cat macos_deps*/* |
           sort -u |
-          xargs -L 1 zsh prepare_dep_macos.sh |
+          xargs -L 1 zsh ci/prepare_dep_macos.sh |
           cat LICENSES.macos - > LICENSES.macos2
 
       - name: Overwrite LICENSES file
@@ -312,7 +312,7 @@ jobs:
         run: >
           cat linux_deps*/* |
           sort -u |
-          xargs -L 1 bash prepare_dep_linux.sh |
+          xargs -L 1 bash ci/prepare_dep_linux.sh |
           cat LICENSES.linux - > LICENSES.linux2
 
       - name: Overwrite LICENSES file

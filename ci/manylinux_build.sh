@@ -23,7 +23,7 @@ echo "boost::python: $bpy"
 set -x
 for pydir in /opt/python/*; do
     if ! version="$(
-       "$pydir/bin/python" requires_version_okay.py pyproject.toml
+       "$pydir/bin/python" ci/requires_version_okay.py pyproject.toml
     )"; then
 	continue
     fi

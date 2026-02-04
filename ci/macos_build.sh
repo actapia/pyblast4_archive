@@ -16,7 +16,7 @@ function build {
 	python_bin="$3"
     fi
     if ! version="$(
-       "$1/bin/$python_bin" requires_version_okay.py pyproject.toml
+       "$1/bin/$python_bin" ci/requires_version_okay.py pyproject.toml
     )"; then
 	return
     fi
