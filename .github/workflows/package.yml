@@ -460,9 +460,15 @@ jobs:
         with:
           name: source
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-#        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}          
+      - name: Flatten dist directory
+        run: |
+          mv dist/*/*.whl dist/
+          rm -rf dist/*/          
+
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
+      #   if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}          
+        
 
       - name: Attach wheels to release
         run: |
