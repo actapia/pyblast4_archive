@@ -129,11 +129,20 @@ Run `make`.
 make
 ```
 
-Then, install with
+The `install` target of the generated `Makefile` does not lay out the
+destination directory structure correctly, so CMake builds must be installed
+"manually." If your install destination is at `$DESTDIR`, then run
 
 ```bash
-sudo make install
+sudo install -D ../bin/* -t "$DESTDIR"/bin
+sudo install -D ../lib/* -t "$DESTDIR"/lib
+sudo mkdir -p "$DESTDIR"/include/ncbi-tools++/
+sudo cp -r ../inc/* "$DESTDIR"/include/ncbi-tools++/
+cd ../../include
+find . -name .svn -prune -o -print |
+    sudo cpio -pd "$DESTDIR"/include/ncbi-tools++/
 ```
+
 
 ### Install Boost.Python
 
