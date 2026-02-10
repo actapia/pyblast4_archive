@@ -4,15 +4,19 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyblast4_archive"
-version = "0.1.10"
+version = "0.1.11"
 authors = [
     { name = "Andrew Tapia", email = "andrew.tapia@uky.edu" }
 ]
 description =  "Rudimentary BLAST archive reading in Python"
-# readme = "README.md"
+readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
 license = "GPL-3.0-only"
+
+[project.urls]
+"Homepage" = "https://github.com/actapia/pyblast4_archive"
+"Bug Tracker" = "https://github.com/actapia/pyblast4_archive"
 
 [[tool.setuptools.ext-modules]]
 name = "pyblast4_archive.pyblast4_archive"

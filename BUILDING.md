@@ -28,7 +28,7 @@ easier to follow but do not produce portable wheels.
 
 ## Dependencies
 
-`pyblast4_archive` only directly depends on two libraries: NCBI C++ Toolkit, and
+`pyblast4_archive` only directly depends on two libraries: NCBI C++ Toolkit and
 Boost.Python. Inconveniently, NCBI C++ Toolkit is in few systems' package
 repositories, and although Boost.Python is in some package repositories, the
 library must be compiled separately for each Python implementation, so the

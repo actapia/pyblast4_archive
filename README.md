@@ -139,9 +139,12 @@ build this library themselves will most likely prefer to download the transitive
 dependencies from a package manager or else build them from upstream sources.
 
 The sources for the transitive dependencies *are* included in the source
-tarballs accompanying each release of this software. Dependency sources for
-Linux can be found under the `deps/linux` directory, and dependency sources for
-macOS can be found under the `deps/macos` directory. 
+tarballs accompanying each release of this software on
+[GitHub](https://github.com/actapia/pyblast4_archive/releases). (Due to file size
+limitations, the source tarballs available from PyPI *do not* currently include
+these dependencies.) Dependency sources for Linux can be found under the
+`deps/linux` directory, and dependency sources for macOS can be found under the
+`deps/macos` directory.
 
 Both the binaries and sources of the transitive dependencies are obtained from
 the package manager of the system used for building. For Linux, the
