@@ -1,10 +1,5 @@
-#include <iostream>
-#include <functional>
-#include <string>
-#include <istream>
-#include <memory>
-#include <strstream>
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
+#include <pybind11/native_enum.h>
 #include <corelib/ncbistd.hpp>
 #include <serial/serial.hpp>
 #include <serial/objistr.hpp>
@@ -30,13 +25,12 @@
 #include <objects/seqalign/Dense_seg.hpp>
 #include <objects/general/Dbtag.hpp>
 #include <objects/general/Object_id.hpp>
-#include "boost/python/class.hpp"
-#include "boost/python/ssize_t.hpp"
+
 #include "python_streambuf.h"
 
-using namespace boost::python;
+namespace py = pybind11;
 
-std::size_t boost_adaptbx::python::streambuf::default_buffer_size = 1024;
+std::size_t pybind_adapt::python::streambuf::default_buffer_size = 1024;
 
 // Disambiguated overloaded function ncbi::CObjectIStream::Open.
 static ncbi::CObjectIStream *(*CObjectIStreamOpen2)(
@@ -97,9 +91,9 @@ public:
      object. */
   static ObjectStreamT* from_python_file_like(
     ncbi::ESerialDataFormat format,
-    boost::python::object& file_like) {
-    std::shared_ptr<boost_adaptbx::python::streambuf> sbp(
-      new boost_adaptbx::python::streambuf(file_like, 1024)
+    py::object& file_like) {
+    std::shared_ptr<pybind_adapt::python::streambuf> sbp(
+      new pybind_adapt::python::streambuf(file_like, 1024)
     );
     SmartStreamT* is = new SmartStreamT(sbp);
     /* The ObjectStreamT takes ownership of the SmartStreamT instance, which, in
@@ -120,10 +114,10 @@ public:
   /* Construct an CObjectIStream with the given format from a Python bytes
      object containing the input data. */
   static CObjectIStream* from_bytes(ncbi::ESerialDataFormat format,
-				    PyObject* obj) {
+				    py::handle obj) {
     char* buffer;
     Py_ssize_t length;
-    int res = PyBytes_AsStringAndSize(obj, &buffer, &length);
+    int res = PyBytes_AsStringAndSize(obj.ptr(), &buffer, &length);
     if (res < -1) {
       return NULL;    
     }
@@ -151,8 +145,8 @@ public:
 
 /* Maps BLAST internal query sequence IDs to corresponding FASTA IDs for a BLAST
    archive. */
-boost::python::dict decode_one_query_ids(ncbi::objects::CBlast4_archive& b4) {
-  boost::python::dict dct;
+py::dict decode_one_query_ids(ncbi::objects::CBlast4_archive& b4) {
+  py::dict dct;
   auto seq_set = b4.GetRequest().GetBody().GetQueue_search().GetQueries()
     .GetBioseq_set().GetSeq_set();
   for (auto c: seq_set) {
@@ -166,7 +160,7 @@ boost::python::dict decode_one_query_ids(ncbi::objects::CBlast4_archive& b4) {
 	title = l->GetTitle();
       }
     }
-    dct[local_id] = title;
+    dct[local_id.c_str()] = title;
   }
   return dct;
 }
@@ -179,18 +173,18 @@ boost::python::dict decode_one_query_ids(ncbi::objects::CBlast4_archive& b4) {
    The second argument should be the CBlast4_archive objects on which to apply
    the function.
  */
-boost::python::dict decode_all(
+py::dict decode_all(
   std::function<
-    boost::python::dict(
+    py::dict(
       ncbi::objects::CBlast4_archive&
     )
   > decode_one,
-  boost::python::list& archives
+  py::list& archives
 ) {
-  boost::python::dict dct;
-  for (boost::python::ssize_t i = 0; i < boost::python::len(archives); i+=1) {
+  py::dict dct;
+  for (py::size_t i = 0; i < py::len(archives); i+=1) {
     ncbi::objects::CBlast4_archive& b4 =
-      boost::python::extract<ncbi::objects::CBlast4_archive&>(archives[i]);
+      py::cast<ncbi::objects::CBlast4_archive&>(archives[i]);
     dct |= decode_one(b4);
   }
   return dct;
@@ -198,8 +192,8 @@ boost::python::dict decode_all(
 
 /* Maps BLAST internal subject sequence IDs to corresponding FASTA IDs for a
    BLAST archive. */
-boost::python::dict decode_one_subject_ids(ncbi::objects::CBlast4_archive& b4) {
-  boost::python::dict dct;
+py::dict decode_one_subject_ids(ncbi::objects::CBlast4_archive& b4) {
+  py::dict dct;
   auto& subjects = b4.GetRequest().GetBody().GetQueue_search().GetSubject();
   if (subjects.IsSequences()) {
     auto seqs = subjects.GetSequences();
@@ -213,7 +207,7 @@ boost::python::dict decode_one_subject_ids(ncbi::objects::CBlast4_archive& b4) {
           title = l->GetTitle();
         }
       }
-      dct[local_id] = title;
+      dct[local_id.c_str()] = title;
     }
   }
   return dct;
@@ -221,9 +215,9 @@ boost::python::dict decode_one_subject_ids(ncbi::objects::CBlast4_archive& b4) {
 
 /* Maps BLAST database internal sequence OIDs to corresponding FASTA IDs for a
    BLAST archive and corresponding BLAST sequence database. */
-boost::python::dict decode_one_database_oids(ncbi::objects::CBlast4_archive& b4,
+py::dict decode_one_database_oids(ncbi::objects::CBlast4_archive& b4,
 					     ncbi::CSeqDB& seq_db) {
-  boost::python::dict dct;
+  py::dict dct;
   for (auto al: b4.GetResults().GetAlignments().Get()) {
     auto& segs = al->GetSegs();
         if (!segs.IsDenseg()) {
@@ -256,17 +250,19 @@ boost::python::dict decode_one_database_oids(ncbi::objects::CBlast4_archive& b4,
           title = l->GetTitle();
         }
       }
-      dct[ord_id] = title;
+      dct[py::int_(ord_id)] = title;
     }
   }
   return dct;
 }
 
-BOOST_PYTHON_MODULE(pyblast4_archive) {
-  class_<ncbi::CObjectIStream, boost::noncopyable>("_ObjectIStream", no_init)
-    .def("open", CObjectIStreamOpen2,
-	 return_value_policy<manage_new_object>(),
-	 R"END(
+
+PYBIND11_MODULE(pyblast4_archive, m, py::mod_gil_not_used()) {
+  py::class_<ncbi::CObjectIStream>(m, "_ObjectIStream")   
+    .def_static("open",
+		CObjectIStreamOpen2,
+		py::return_value_policy::take_ownership,
+		R"END(
 Open an input stream from a file path and the file's data format.
 
 Parameters:
@@ -276,23 +272,30 @@ Parameters:
 Returns:
     An input stream with the specified file opened for reading in given format.
 )END")
-    .staticmethod("open")
-    .def("_from_buffer", CreateFromBuffer3,
-	 return_value_policy<manage_new_object>())
-    .staticmethod("_from_buffer")
-    .def("end_of_data", &ncbi::CObjectIStream::EndOfData,
+    
+    .def("_from_buffer",
+	 CreateFromBuffer3,
+	 py::return_value_policy::take_ownership)
+    
+    .def("end_of_data",
+	 &ncbi::CObjectIStream::EndOfData,
 	 "Check whether there is still data left to read from the stream.");
 
-  class_<WrappedObjectIStream, boost::noncopyable,
-	 bases<ncbi::CObjectIStream>>("ObjectIStream", R"END(
+  
+  py::class_<WrappedObjectIStream, ncbi::CObjectIStream>(m,
+							 "ObjectIStream",
+							 R"END(
 Input stream for reading NCBI Toolkit objects.
 
 Unlike a Python file-like object, an ObjectIStream has some notion of the file
 format used by the stream, but an ObjectIStream can be created from a Python
 file-like object using the from_python_file_like staticmethod.
-)END", no_init)
-    .def("from_python_file_like", &WrappedObjectIStream::from_python_file_like,
-	 return_value_policy<manage_new_object>(), R"END(
+)END")
+    
+    .def_static("from_python_file_like",
+		&WrappedObjectIStream::from_python_file_like,
+		py::return_value_policy::take_ownership,
+		R"END(
 Create an input stream from a format and a Python file-like object.
 
 Parameters:
@@ -302,10 +305,12 @@ Parameters:
 Returns:
     An input stream for the file-like object using the given format.
 )END")
-    .staticmethod("from_python_file_like")
-    .def("from_bytes", &WrappedObjectIStream::from_bytes,
-	 return_internal_reference<2, return_value_policy<manage_new_object>>(),
-	 R"END(
+    
+    .def_static("from_bytes",
+		&WrappedObjectIStream::from_bytes,
+		py::keep_alive<0, 2>(),
+		py::return_value_policy::take_ownership,
+		R"END(
 Create an input stream from a format and bytes.
 
 Parameters:
@@ -314,21 +319,23 @@ Parameters:
 
 Returns:
     An input stream for the bytes using the given format.
-)END")
-    .staticmethod("from_bytes");
+)END");
 
-  class_<ncbi::CObjectOStream, boost::noncopyable>("_ObjectOStream", no_init);
+  
+  py::class_<ncbi::CObjectOStream>(m, "_ObjectOStream");
 
-  class_<WrappedObjectOStream, boost::noncopyable>("ObjectOStream", R"END(
+  
+  py::class_<WrappedObjectOStream>(m, "ObjectOStream", R"END(
 Output stream for writing NCBI Toolkit objects.
 
 Unlike a Python file-like object, an ObjectOStream has some notion of the file
 format used by the stream, but an ObjectOStream can be created from a Python
 file-like object using the from_python_file_like staticmethod.
-)END", no_init)
-    .def("open", &WrappedObjectOStream::Open2,
-	 return_value_policy<manage_new_object>(),
-	 	 R"END(
+)END")
+    
+    .def_static("open", &WrappedObjectOStream::Open2,
+		py::return_value_policy::take_ownership,
+		R"END(
 Open an output stream from a file path and the file's data format.
 
 Parameters:
@@ -338,9 +345,11 @@ Parameters:
 Returns:
     An output stream with the specified file opened for writing in given format.
 )END")
-    .staticmethod("open")
-    .def("from_python_file_like", &WrappedObjectOStream::from_python_file_like,
-	 return_value_policy<manage_new_object>(), R"END(
+    
+    .def_static("from_python_file_like",
+		&WrappedObjectOStream::from_python_file_like,
+		py::return_value_policy::take_ownership,
+		R"END(
 Create an output stream from a format and a Python file-like object.
 
 Parameters:
@@ -349,25 +358,25 @@ Parameters:
 
 Returns:
     An output stream for the file-like object using the given format.
-)END")
-    .staticmethod("from_python_file_like");
+)END");
 
-  class_<ncbi::CSerialObject, boost::noncopyable>("SerialObject", "Base class "
-						  "of serializable objects "
-						  "from the NCBI C++ Toolkit.",
-						  no_init);
+  
+  py::class_<ncbi::CSerialObject>(m, "SerialObject", "Base class serrializable "
+				  "objects from the NCBI C++ Toolkit.");
 
-  class_<ncbi::objects::CBlast4_archive, boost::noncopyable,
-	 bases<ncbi::CSerialObject>>("_Blast4Archive", no_init);
+  
+  py::class_<ncbi::objects::CBlast4_archive>(m, "_Blast4Archive");
 
-  class_<WrappedSerialObject<ncbi::objects::CBlast4_archive>,
-	 bases<ncbi::objects::CBlast4_archive>,
-	 boost::noncopyable>("Blast4Archive",
-			     R"END(
+  
+  py::class_<WrappedSerialObject<ncbi::objects::CBlast4_archive>,
+	     ncbi::objects::CBlast4_archive>(m, "Blast4Archive", R"END(
 C++-based internal base class for BLAST archive format archives.
 
 Instances of this class represent archives containing BLAST results.
 )END")
+    
+    .def(py::init<>())
+    
     .def("read_from_stream",
 	 &WrappedSerialObject<ncbi::objects::CBlast4_archive>::read_from_stream,
 	 R"END(
@@ -376,6 +385,7 @@ Read a BLAST archive from an ObjectIStream.
 Parameters:
     is_: The ObjectIStream from which to read the BLAST archive data.
 )END")
+    
     .def("write_to_stream",
 	 &WrappedSerialObject<ncbi::objects::CBlast4_archive>::write_to_stream,
 	 R"END(
@@ -385,28 +395,33 @@ Parameters:
     os_: The ObjectOStream to which to write the BLAST archive data.
 )END");
 
-  class_<ncbi::CSeqDB,
-	 boost::noncopyable>("SeqDB",
-			     "Internal C++ class representing a BLAST sequence "
-			     "database (nucleotide or protein).",
-			     boost::python::init<std::string,
-			                         ncbi::CSeqDB::ESeqType>()
-			     );
+  
+  py::class_<ncbi::CSeqDB>(m, "SeqDB", "Internal C++ class representing a "
+			   "BLAST sequence database (nucleotide or protein).")
+    .def(py::init<std::string, ncbi::CSeqDB::ESeqType>());
 
-  enum_<ncbi::ESerialDataFormat>("SerialDataFormat",
-				 "Serialization format of data to be streamed.")
+  
+  py::native_enum<ncbi::ESerialDataFormat>(m, "SerialDataFormat", "enum.Enum",
+					   "Serialization format of data to be "
+					   "streamed.")
     .value("none", ncbi::eSerial_None)
     .value("asn_text", ncbi::eSerial_AsnText)
     .value("asn_binary", ncbi::eSerial_AsnBinary)
     .value("xml", ncbi::eSerial_Xml)
-    .value("json", ncbi::eSerial_Json);
+    .value("json", ncbi::eSerial_Json)
+    .export_values()
+    .finalize();
 
-  enum_<ncbi::CSeqDB::ESeqType>("_SeqDBSeqType")
+  
+  py::native_enum<ncbi::CSeqDB::ESeqType>(m, "_SeqDBSeqType", "enum.Enum")
     .value("protein", ncbi::CSeqDB::ESeqType::eProtein)
     .value("nucleotide", ncbi::CSeqDB::ESeqType::eNucleotide)
-    .value("unknown", ncbi::CSeqDB::ESeqType::eUnknown);
+    .value("unknown", ncbi::CSeqDB::ESeqType::eUnknown)
+    .export_values()
+    .finalize();
 
-  def("decode_query_ids", +[](boost::python::list& b4) {
+  
+  m.def("decode_query_ids", +[](py::list& b4) {
     return decode_all(decode_one_query_ids, b4);
   }, R"END(
 Get a dict mapping query sequence IDs used in archives to original FASTA IDs.
@@ -423,8 +438,9 @@ Parameters:
 Returns:
     A dict mapping query sequence IDs used in archives to original FASTA IDs.
 )END");
+
   
-  def("decode_subject_ids", +[](boost::python::list& b4) {
+  m.def("decode_subject_ids", +[](py::list& b4) {
     return decode_all(decode_one_subject_ids, b4);
   }, R"END(
 Get a dict mapping subject sequence IDs used in archives to original FASTA IDs.
@@ -447,8 +463,9 @@ Parameters:
 Returns:
     A dict mapping subject sequence IDs used in archives to original FASTA IDs.
 )END");
+
   
-  def("decode_database_oids", +[](boost::python::list& b4, ncbi::CSeqDB& db) {
+  m.def("decode_database_oids", +[](py::list& b4, ncbi::CSeqDB& db) {
      return decode_all([&db](ncbi::objects::CBlast4_archive& a) {
        return decode_one_database_oids(a, db);
      }, b4);
@@ -468,4 +485,3 @@ Returns:
     A dict mapping BLAST database OIDs used in archives to original FASTA IDs.
 )END");
 }
-
