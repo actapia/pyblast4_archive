@@ -20,30 +20,21 @@ function build {
     )"; then
 	return
     fi
+    echo "Installing pybind11."
+    "$1/bin/$python_bin" -m pip install 'pybind11[global]'
     version_name="$(printf "$2" "$version")"
     # if ! [ -f "$bpy_lib"/"libboost_python$version-$version_name.dylib" ]; then
     # 	>&2 echo "Could not find libboost_python for version $2."
     # 	exit 1
     # fi
-    lib_path="$(find_dep \
-                "boost::python library for $version" \
-                "$bpy_lib"/"libboost_python$version-"${~version_name}".dylib")"
-    lib_name="$(basename "$lib_path")"
-    lib_name="${lib_name#lib}"
-    lib_name="${lib_name%.dylib}"
     echo "Building for $version_name"
     rm -rf build
     python_include="$(find_dep "$version_name include dir" "$1"/include/)"
     CXXFLAGS=("-I$toolkit_include/ncbi-tools++"
-    	      "-I$bpy_include"
     	      "-I$python_include")
     LDFLAGS=("-L$toolkit_lib"
-    	     "-L$bpy_lib"
-	     "-l$lib_name"
 	     "-Wl,-rpath"
-	     "-Wl,$toolkit_lib"
-	     "-Wl,-rpath"
-	     "-Wl,$bpy_lib")
+	     "-Wl,$toolkit_lib")
     export _PYTHON_HOST_PLATFORM="macosx-$(sw_vers -productVersion)-$(uname -m)"
     CXXFLAGS="${CXXFLAGS[*]}" LDFLAGS="${LDFLAGS[*]}" \
     	    "$1/bin/$python_bin" -m pip wheel . -w wheelhouse
@@ -57,11 +48,7 @@ set -e
 toolkit="$(brew --prefix ncbi-cxx-toolkit)"
 export toolkit_lib="$(find_dep 'NCBI C++ Toolkit library dir' "$toolkit"/lib)"
 export toolkit_include="$(find_dep 'NCBI C++ Toolkit include dir' "$toolkit"/include)"
-bpy="$(brew --prefix boost-python-cibuildwheel)"
-export bpy_lib="$(find_dep 'boost::python library dir' "$bpy"/lib)"
-export bpy_include="$(find_dep 'boost::python include dir' "$bpy"/include)"
 echo "NCBI C++ Toolkit: $toolkit"
-echo "boost::python: $bpy"
 set -x
 for t in "" "t"; do
     for cp in "/Library/Frameworks/Python${t:u}.framework/Versions/"*; do

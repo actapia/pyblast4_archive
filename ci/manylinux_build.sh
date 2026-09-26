@@ -15,11 +15,7 @@ set -e
 toolkit="$(find_dep /opt/ncbi-cxx-toolkit- 'NCBI C++ Toolkit')"
 toolkit_lib="$(find_dep "$toolkit"/lib 'NCBI C++ Toolkit library dir')"
 toolkit_include="$(find_dep "$toolkit"/include 'NCBI C++ Toolkit include dir')"
-bpy="$(find_dep /opt/boost-python- 'boost::python')"
-bpy_lib="$(find_dep "$bpy"/lib 'boost::python library dir')"
-bpy_include="$(find_dep "$bpy"/include 'boost::python include dir')"
 echo "NCBI C++ Toolkit: $toolkit"
-echo "boost::python: $bpy"
 set -x
 for pydir in /opt/python/*; do
     if ! version="$(
@@ -27,25 +23,16 @@ for pydir in /opt/python/*; do
     )"; then
 	continue
     fi
+    echo "Installing pybind11."
+    "$pydir/bin/python" -m pip install 'pybind11[global]'
     #echo "$version is okay"
     version_name="$(basename "$pydir")"
-    echo "$version $version_name"
-    if ! [ "$bpy_lib"/"libboost_python$version-$version_name.so" ]; then
-    	>&2 echo "Could not find libboost_python for version $version_name."
-    	exit 1
-    fi
     echo "Building for $version_name"
     python_include="$(find_dep "$pydir"/include/ "$version_name include dir" /)"
-    CXXFLAGS=("-I$toolkit_include/ncbi-tools++"
-    	      "-I$bpy_include"
-    	      "-I$python_include")
+    CXXFLAGS=("-I$toolkit_include/ncbi-tools++")
     LDFLAGS=("-L$toolkit_lib"
-    	     "-L$bpy_lib"
-	     "-lboost_python$version-$version_name"
 	     "-Wl,-rpath"
-	     "-Wl,$toolkit_lib"
-	     "-Wl,-rpath"
-	     "-Wl,$bpy_lib")
+	     "-Wl,$toolkit_lib")
     CXXFLAGS="${CXXFLAGS[*]}" LDFLAGS="${LDFLAGS[*]}" \
     	    "$pydir/bin/python" -m pip wheel . -w /root/wheelhouse
     echo "Testing package can be imported on $version_name"
