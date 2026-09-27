@@ -25,6 +25,7 @@ for pydir in /opt/python/*; do
     fi
     #echo "$version is okay"
     version_name="$(basename "$pydir")"
+    rm -f "$pydir/lib/libz.so.1"
     echo "Building for $version_name"
     python_include="$(find_dep "$pydir"/include/ "$version_name include dir" /)"
     echo "Installing pybind11."
