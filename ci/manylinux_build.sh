@@ -30,7 +30,7 @@ for pydir in /opt/python/*; do
     echo "Installing pybind11."
     "$pydir/bin/python" -m pip install 'pybind11[global]'    
     CXXFLAGS=("-I$toolkit_include/ncbi-tools++"
-	      "-I$pydir/include/pybind11"
+	      "-I$pydir/include/"
 	      "-I$python_include")
     LDFLAGS=("-L$toolkit_lib"
 	     "-Wl,-rpath"
