@@ -23,12 +23,12 @@ for pydir in /opt/python/*; do
     )"; then
 	continue
     fi
-    echo "Installing pybind11."
-    "$pydir/bin/python" -m pip install 'pybind11[global]'
     #echo "$version is okay"
     version_name="$(basename "$pydir")"
     echo "Building for $version_name"
     python_include="$(find_dep "$pydir"/include/ "$version_name include dir" /)"
+    echo "Installing pybind11."
+    "$pydir/bin/python" -m pip install 'pybind11[global]'    
     CXXFLAGS=("-I$toolkit_include/ncbi-tools++")
     LDFLAGS=("-L$toolkit_lib"
 	     "-Wl,-rpath"

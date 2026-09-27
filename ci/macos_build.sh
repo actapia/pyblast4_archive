@@ -20,8 +20,6 @@ function build {
     )"; then
 	return
     fi
-    echo "Installing pybind11."
-    "$1/bin/$python_bin" -m pip install 'pybind11[global]'
     version_name="$(printf "$2" "$version")"
     # if ! [ -f "$bpy_lib"/"libboost_python$version-$version_name.dylib" ]; then
     # 	>&2 echo "Could not find libboost_python for version $2."
@@ -30,6 +28,8 @@ function build {
     echo "Building for $version_name"
     rm -rf build
     python_include="$(find_dep "$version_name include dir" "$1"/include/)"
+    echo "Installing pybind11."
+    "$1/bin/$python_bin" -m pip install 'pybind11[global]'    
     CXXFLAGS=("-I$toolkit_include/ncbi-tools++"
     	      "-I$python_include")
     LDFLAGS=("-L$toolkit_lib"
