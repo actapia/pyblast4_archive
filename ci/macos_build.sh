@@ -31,7 +31,8 @@ function build {
     echo "Installing pybind11."
     "$1/bin/$python_bin" -m pip install 'pybind11[global]'    
     CXXFLAGS=("-I$toolkit_include/ncbi-tools++"
-    	      "-I$python_include")
+    	      "-I$python_include"
+	     "-I$1/include/pybind11")
     LDFLAGS=("-L$toolkit_lib"
 	     "-Wl,-rpath"
 	     "-Wl,$toolkit_lib")

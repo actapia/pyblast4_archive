@@ -29,7 +29,9 @@ for pydir in /opt/python/*; do
     python_include="$(find_dep "$pydir"/include/ "$version_name include dir" /)"
     echo "Installing pybind11."
     "$pydir/bin/python" -m pip install 'pybind11[global]'    
-    CXXFLAGS=("-I$toolkit_include/ncbi-tools++")
+    CXXFLAGS=("-I$toolkit_include/ncbi-tools++"
+	      "-I$pydir/include/pybind11"
+	      "-I$python_include")
     LDFLAGS=("-L$toolkit_lib"
 	     "-Wl,-rpath"
 	     "-Wl,$toolkit_lib")
