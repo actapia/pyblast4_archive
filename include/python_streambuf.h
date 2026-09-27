@@ -227,7 +227,10 @@ class streambuf : public std::basic_streambuf<char>
       farthest_pptr = std::max(farthest_pptr, pptr());
       off_type n_written = (off_type)(farthest_pptr - pbase());
 
-      py::str chunk(pbase(), n_written);
+      static_assert(sizeof(char*) <= sizeof(py::ssize_t),
+		    "Addresses too large to represent in py::size_t");
+
+      py::str chunk(pbase(), (py::ssize_t)n_written);
       py_write(chunk);
       if (!traits_type::eq_int_type(c, traits_type::eof())) {
         py_write(traits_type::to_char_type(c));
