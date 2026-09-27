@@ -135,7 +135,7 @@ jobs:
 
       - name: Upload wheels
         id: wheel-upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wheel_${{matrix.architecture}}
           path: 'wheelhouse/*manylinux*.whl'
@@ -145,7 +145,7 @@ jobs:
 
       - name: Upload dependency list
         id: deps-upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: linux_deps-${{matrix.architecture}}
           path: linux_deps-${{matrix.architecture}}
@@ -209,7 +209,7 @@ jobs:
 
       - name: Upload wheels
         id: wheel-upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wheel_${{matrix.runner}}
           path: 'delocated_wheelhouse/*.whl'
@@ -219,7 +219,7 @@ jobs:
 
       - name: Upload dependency list
         id: deps-upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: macos_deps_${{matrix.runner}}
           path: macos_deps-${{matrix.runner}}
@@ -236,7 +236,7 @@ jobs:
 
       - name: Download dependency lists
         id: dep-list-download
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           pattern: macos_deps*
 
@@ -261,7 +261,7 @@ jobs:
 
       - name: Upload deps
         id: deps-upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: macos_deps
           path: macos_deps
@@ -271,7 +271,7 @@ jobs:
 
       - name: Upload LICENSES
         id: licenses-upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: macos_licenses
           path: LICENSES.macos
@@ -289,7 +289,7 @@ jobs:
 
       - name: Download dependency lists
         id: dep-list-download
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           pattern: linux_deps*
 
@@ -321,7 +321,7 @@ jobs:
 
       - name: Upload deps
         id: deps-upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: linux_deps
           path: linux_deps
@@ -331,7 +331,7 @@ jobs:
 
       - name: Upload LICENSES
         id: licenses-upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: linux_licenses
           path: LICENSES.linux
@@ -356,28 +356,28 @@ jobs:
 
       - name: Download Linux deps
         id: linux-deps-download
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: linux_deps
           path: ${{ github.event.repository.name}}/deps/linux
 
       - name: Download macOS deps
         id: macos-deps-download
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: macos_deps
           path: ${{ github.event.repository.name}}/deps/macos
 
       - name: Download Linux LICENSES
         id: linux-licenses-download
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: linux_licenses
           path: ${{ github.event.repository.name}}
 
       - name: Download macOS LICENSES
         id: macos-licenses-download
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: macos_licenses
           path: ${{ github.event.repository.name}}
@@ -411,7 +411,7 @@ jobs:
 
       - name: Upload source tarball
         id: source-upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: source
           path: ${{ github.event.repository.name }}*.tar.zst
@@ -448,14 +448,14 @@ jobs:
         
       - name: Download portable wheels
         id: wheel-download
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           pattern: wheel_*
           path: dist/
 
       - name: Download source tarball
         id: source-download
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: source
 
