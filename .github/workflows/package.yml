@@ -244,6 +244,9 @@ jobs:
       - name: Tap actapia/cibuildwheel_packages
         run: brew tap actapia/cibuildwheel_packages
 
+      - name: Trust actapia/cibuildwheel_packages
+        run: brew trust actapia/cibuildwheel_packages        
+
       - name: Install jq
         run: brew install jq
 
