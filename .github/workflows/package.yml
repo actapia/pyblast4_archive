@@ -239,6 +239,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           pattern: macos_deps*
+          merge-multiple: true
 
       - name: Tap actapia/cibuildwheel_packages
         run: brew tap actapia/cibuildwheel_packages
@@ -248,7 +249,7 @@ jobs:
 
       - name: Prepare deps
         run: >
-          cat macos_deps*/* |
+          cat macos_deps* |
           sort -u |
           xargs -L 1 zsh ci/prepare_dep_macos.sh |
           cat LICENSES.macos - > LICENSES.macos2
