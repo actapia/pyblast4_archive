@@ -21,10 +21,6 @@ function build {
 	return
     fi
     version_name="$(printf "$2" "$version")"
-    # if ! [ -f "$bpy_lib"/"libboost_python$version-$version_name.dylib" ]; then
-    # 	>&2 echo "Could not find libboost_python for version $2."
-    # 	exit 1
-    # fi
     echo "Building for $version_name"
     rm -rf build
     python_include="$(find_dep "$version_name include dir" "$1"/include/)"
@@ -59,7 +55,7 @@ for t in "" "t"; do
     done
 done
 for gp in /Library/Caches/cibuildwheel/graalpy*/; do
-    build "$gp" 'gp%s_*'
+    build "$gp" 'graalpy%s'
 done
 for pp in /Library/Caches/cibuildwheel/pypy*/; do
     build "$pp" 'pp%s'
