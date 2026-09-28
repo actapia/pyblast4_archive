@@ -58,9 +58,9 @@ for t in "" "t"; do
 	fi
     done
 done
-# for gp in /Library/Caches/cibuildwheel/graalpy*/; do
-#     build "$gp" 'gp%s_*'
-# done
+for gp in /Library/Caches/cibuildwheel/graalpy*/; do
+    build "$gp" 'gp%s_*'
+done
 for pp in /Library/Caches/cibuildwheel/pypy*/; do
     build "$pp" 'pp%s'
 done
