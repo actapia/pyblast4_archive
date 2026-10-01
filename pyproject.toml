@@ -37,7 +37,6 @@ libraries = [
     "sequtil",
     "xblast",
     "seqdb",
-    "lmdb",
     "ncbi_xreader_gicache",
     "blastdb",
     "xobjmgr",
