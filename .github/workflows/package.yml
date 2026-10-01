@@ -5,7 +5,7 @@ on:
     inputs:
       debug_enabled:
         type: boolean
-        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        description: 'Run the build with upterme debugging enabled'
         required: false
         default: false
 
@@ -207,8 +207,8 @@ jobs:
           sed "s,^$(brew --prefix)/Cellar/\([^/]*\).*,\1," |
           sort -u > macos_deps-${{matrix.runner}}
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+      - name: Setup upterm session
+        uses: owenthereal/action-upterm@v2
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}        
 
       - name: Upload wheels
